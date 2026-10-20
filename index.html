@@ -19,7 +19,17 @@ let wordMarks={};try{wordMarks=JSON.parse(localStorage.getItem('countryRoadsWord
 let tapLine=-1,tapIndex=0;
 let selected=0, lastLine=-1,lastWord=-1,sceneIndex=-1, raf=0;
 function wordAt(i,t,start,end){const marks=wordMarks[i];if(marks&&marks.length){let k=0;for(let x=0;x<marks.length;x++){if(t>=marks[x])k=x;else break}return Math.min(words[i].length-1,k)}return Math.min(words[i].length-1,Math.floor(Math.max(0,Math.min(.999,(t-start)/Math.max(.3,end-start)))*words[i].length))}
-function activeAt(t){const a=starts();let i=0;while(i<a.length-1&&t>=a[i+1])i++;let end=i<a.length-1?a[i+1]:duration;let span=Math.max(.3,end-a[i]);let progress=Math.max(0,Math.min(.999,(t-a[i])/span));return [i,Math.min(words[i].length-1,wordAt(i,t,a[i],end)]}
+
+function activeAt(t) {
+  const a = starts();
+  let i = 0;
+  while (i < a.length - 1 && t >= a[i + 1]) i++;
+  let end = i < a.length - 1 ? a[i + 1] : duration;
+  let span = Math.max(.3, end - a[i]);
+  let progress = Math.max(0, Math.min(.999, (t - a[i]) / span));
+  return [i, Math.min(words[i].length - 1, wordAt(i, t, a[i], end))];
+}
+
 function render(force=false){let t=audio.currentTime||0;let [i,j]=activeAt(t);if(force||i!==lastLine||j!==lastWord){selected=i;const host=$('lyrics');host.replaceChildren();words[i].forEach((w,k)=>{let s=document.createElement('span');s.className='word'+(k<j?' done':k===j?' active':'');s.textContent=w;if(k===j){let b=document.createElement('span');b.className='ball';b.textContent=$('emoji').value;s.appendChild(b)}host.appendChild(s)});lastLine=i;lastWord=j;let idx=Math.min(3,Math.floor(i/lines.length*4));if(idx!==sceneIndex){sceneIndex=idx;let sc=scenes[idx];$('season').textContent=sc[0];$('location').textContent=sc[1];$('scenery').style.backgroundImage='url('+JSON.stringify(sc[2])+')'}}$('seek').value=t;$('status').textContent=`${format(t)} / ${format(audio.duration||duration)} • Line ${i+1} of ${lines.length} • ${audio.paused?'Paused':'Playing'}`;$('play').textContent=audio.paused?'▶ Play':'⏸ Pause';$('timing').textContent=`Line ${i+1}: ${saved[i]!==undefined?'custom timing saved':'estimated timing'} • ${format(starts()[i])}`}
 function format(t){let s=Math.floor(t||0);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
 function loop(){render();if(!audio.paused&&!audio.ended)raf=requestAnimationFrame(loop)}
